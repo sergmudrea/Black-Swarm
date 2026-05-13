@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"net"
 	"net/url"
 	"strings"
@@ -20,22 +21,18 @@ func (t *Target) Validate() error {
 		return fmt.Errorf("host must not be empty")
 	}
 
-	// Strip scheme if present
 	host := t.Host
 	host = strings.TrimPrefix(host, "http://")
 	host = strings.TrimPrefix(host, "https://")
 
-	// If it is a URL, extract the hostname
 	if u, err := url.Parse("https://" + host); err == nil {
 		host = u.Hostname()
 	}
 
-	// Validate hostname or IP
 	if ip := net.ParseIP(host); ip != nil {
 		return nil
 	}
 
-	// DNS name validation (simplified)
 	if len(host) < 1 || len(host) > 253 {
 		return fmt.Errorf("host name length invalid")
 	}

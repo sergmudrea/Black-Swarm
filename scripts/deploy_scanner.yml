@@ -1,0 +1,55 @@
+- name: Deploy Siege scanner node
+  hosts: scanner
+  become: yes
+  vars:
+    node_mode: scanner
+    config_src: "../configs/node_scanner.json"
+    siege_image: "sergmudrea/black-swarm:latest"
+  tasks:
+    - name: Install Docker
+      ansible.builtin.apt:
+        name:
+          - docker.io
+          - docker-compose
+        state: present
+        update_cache: yes
+
+    - name: Ensure Docker is running
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Create config directory
+      ansible.builtin.file:
+        path: /etc/siege
+        state: directory
+        mode: '0700'
+
+    - name: Copy node configuration
+      ansible.builtin.copy:
+        src: "{{ config_src }}"
+        dest: /etc/siege/node_config.json
+        owner: root
+        group: root
+        mode: '0600'
+
+    - name: Pull Siege image
+      community.docker.docker_image:
+        name: "{{ siege_image }}"
+        source: pull
+
+    - name: Run Siege container
+      community.docker.docker_container:
+        name: siege-scanner
+        image: "{{ siege_image }}"
+        state: started
+        restart_policy: unless-stopped
+        command: ["-mode={{ node_mode }}", "-config=/etc/siege/node_config.json"]
+        env:
+          SIEGE_CONFIG_KEY: "{{ lookup('env', 'SIEGE_CONFIG_KEY') }}"
+        volumes:
+          - /etc/siege/node_config.json:/etc/siege/node_config.json:ro
+          - /var/lib/siege:/data
+        networks:
+          - name: swarm_net

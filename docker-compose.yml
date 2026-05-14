@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  strategic:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    container_name: siege-strategic
+    hostname: strategic
+    command: ["-mode=strategic", "-config=/etc/siege/node_config.json"]
+    environment:
+      - SIEGE_CONFIG_KEY=${SIEGE_CONFIG_KEY:-changeme}
+    volumes:
+      - ./configs/node_strategic.json:/etc/siege/node_config.json:ro
+      - strategic_data:/data
+    ports:
+      - "8443:8443"
+    networks:
+      - swarm_net
+    restart: unless-stopped
+
+  scanner1:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    container_name: siege-scanner1
+    hostname: scanner1
+    command: ["-mode=scanner", "-config=/etc/siege/node_config.json"]
+    environment:
+      - SIEGE_CONFIG_KEY=${SIEGE_CONFIG_KEY:-changeme}
+    volumes:
+      - ./configs/node_scanner.json:/etc/siege/node_config.json:ro
+      - scanner1_data:/data
+    networks:
+      - swarm_net
+    restart: unless-stopped
+    depends_on:
+      - strategic
+
+  scanner2:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    container_name: siege-scanner2
+    hostname: scanner2
+    command: ["-mode=scanner", "-config=/etc/siege/node_config.json"]
+    environment:
+      - SIEGE_CONFIG_KEY=${SIEGE_CONFIG_KEY:-changeme}
+    volumes:
+      - ./configs/node_scanner.json:/etc/siege/node_config.json:ro
+      - scanner2_data:/data
+    networks:
+      - swarm_net
+    restart: unless-stopped
+    depends_on:
+      - strategic
+
+volumes:
+  strategic_data:
+  scanner1_data:
+  scanner2_data:
+
+networks:
+  swarm_net:
+    driver: bridge

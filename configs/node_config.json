@@ -1,0 +1,21 @@
+{
+  "node_id": "",
+  "mode": "scanner",
+  "gossip_port": 7946,
+  "http_port": 8443,
+  "bind_addr": "0.0.0.0",
+  "advertise_addr": "",
+  "seed_peers": ["strategic:7946"],
+  "max_peers": 50,
+  "rate_limit": 1000,
+  "scan_timeout_seconds": 1800,
+  "default_ports": [22, 80, 443, 8080, 8443],
+  "modules": ["tcp_syn", "service_detect", "dns_recon", "subdomain", "cve_match"],
+  "population_size": 100,
+  "generations": 50,
+  "mutation_rate": 0.05,
+  "crossover_rate": 0.7,
+  "elite_count": 5,
+  "db_path": "/data/siege.db",
+  "secret_key": "generate-a-real-32-byte-key"
+}
